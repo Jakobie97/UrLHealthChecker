@@ -2,14 +2,20 @@ import requests
 
 url = 'https://status.playstation.com/'
 
-response = requests.get(url)
+myURLs= ["https://status.playstation.com/",
+         "https://slack-status.com/","https://health.aws.amazon.com/health/status",
+         "https://status.cloud.microsoft/m365/referrer=serviceStatusRedirect"]
 
-if response.status_code == 200:
-    print('')
-    print('The Play Station Network is onliine!')
-else:
-    print('')
-    print('The site is down go touch grass')
 
-print('')
-print(response)
+for i in myURLs:
+    urlResponse = requests.get(url)
+    print(urlResponse)
+    if urlResponse.status_code == 200:
+
+        print(i)
+        print('Your site is onliine!')
+        print('')
+    else:
+        print(i)
+        print('The site is down go touch grass')
+        print('')
