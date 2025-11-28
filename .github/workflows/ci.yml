@@ -48,4 +48,6 @@ jobs:
 
       - name: Scan for vulnerabilities
         run: |
-          docker scan url-health-checker
+          # Install Trivy - a popular security scanner
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          trivy image url-health-checker
