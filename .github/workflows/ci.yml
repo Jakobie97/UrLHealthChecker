@@ -21,11 +21,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+      - name: Debug - List files
+        run: |
+          pwd
+          ls -la
+          find . -name "main.py"   # This will show where your files actually are
 
       - name: Run linter
         run: |
           pip install flake8
-          flake8 src/ --count --max-complexity=10 --statistics
+          flake8 . --count --max-complexity=10 --statistics --exclude=venv*
 
       - name: Test the health checker
         run: |
