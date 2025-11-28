@@ -54,7 +54,7 @@ jobs:
 
       - name: Push to Docker Hub
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/url-health-checker:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/jakoebie/url-health-checker:latest
           
       - name: Scan for vulnerabilities
         run: |
