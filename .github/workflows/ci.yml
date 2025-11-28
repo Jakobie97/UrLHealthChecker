@@ -34,7 +34,7 @@ jobs:
 
       - name: Test the health checker
         run: |
-          python src/health_checker.py --help
+          python main.py --help
 
       - name: Build Docker image
         run: |
