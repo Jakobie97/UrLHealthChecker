@@ -45,7 +45,12 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t url-health-checker .
-
+      
+      - name: Push to Docker Hub
+        run: |
+          echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+          docker push ${{ secrets.DOCKER_USERNAME }}/url-health-checker:latest
+          
       - name: Scan for vulnerabilities
         run: |
           # Install Trivy - a popular security scanner
