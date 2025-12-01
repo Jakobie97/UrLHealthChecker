@@ -29,16 +29,27 @@ cursor.execute('''
         )
     ''')
   
+def send_discord_notification(webhook_url, message):
+    data = {
+        "content": message
+    }
+    try:
+        response = requests.post(webhook_url, json=data)
+        if response.status_code == 204:
+            print("Notification sent to Discord successfully.")
+        else:
+            print(f"Failed to send notification to Discord. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"An error occurred while sending notification to Discord: {e}")
 
-#myURLs= ["https://status.playstation.com/",
-#        "https://slack-status.com/","https://health.aws.amazon.com/health/status",
-#        "https://status.cloud.microsoft/m365/referrer=serviceStatusRedirect"]
-
+discord_webhook_url = config['discord_webhook']['url']
 
 for i in myURLs:
-    
-    urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
-    
+    try:
+        urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
+    except requests.exceptions.ConnectionError as e:
+        print(f"Error accessing {i}: {e}")
+        urlResponse = type('obj', (object,), {'status_code' : 'N/A'})()  # Create a dummy object with status_code 'N/A'
 
     #this block takes the raw time data in second and make it more readaable 
     currentTimestamp = time.time()
@@ -69,6 +80,8 @@ connection.commit() #pushes to database
 
 print("Your database has successfully logged theses entries! :)")
 print(f"Next check in {CHECK_FREQUENCY} minutes.")
+
+send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
 connection.close()
     
   

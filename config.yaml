@@ -6,6 +6,8 @@ urls_to_monitor:
   - https://slack-status.com       # <-- Added https://
   - https://health.aws.amazon.com # <-- Added https://
   - https://status.cloud.microsoft # <-- Added https://
+  - https://www.githubstatus.com   # <-- Added https://
+  - http://localhost:9999    # <-- Added https://
 
 # Network settings for the requests
 settings:
@@ -14,3 +16,7 @@ settings:
 
   # How often to check all URLs, in minutes (e.g., check every 15 minutes)
   check_frequency_minutes: 15
+
+discord_webhook:
+  # Discord webhook URL to send notifications to (must start with http:// or https://)
+  url: https://discord.com/api/webhooks/1445116863536431254/AuWDwilSj8zyfA8SM8fb3XUm2glAtnJTpiMzXtP_y-XPGDN1v3kJCnUZq5ALGXwQXmPv
