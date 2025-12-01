@@ -19,6 +19,15 @@ connection = sqlite3.connect('./Database/MyUrlChecksDBStorage.db') #path to sql 
 cursor = connection.cursor() #helper that inserts the data
 
 sqlInsertQuery = "INSERT INTO Url_Responses (url, status_code, timestamp) VALUES (?, ?, ?);"
+
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Url_Responses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        url TEXT NOT NULL,
+        status_code INTEGER,
+        timestamp TEXT
+        )
+    ''')
   
 
 #myURLs= ["https://status.playstation.com/",
