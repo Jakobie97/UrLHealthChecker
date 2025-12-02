@@ -83,7 +83,7 @@ for i in myURLs:
 connection.commit() #pushes to database
 
 print("Your database has successfully logged theses entries! :)")
-print(f"Next check in {CHECK_FREQUENCY} minutes.")
+
 
 send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
 
