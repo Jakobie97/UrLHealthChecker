@@ -57,6 +57,8 @@ for i in myURLs:
     #you have to create an object date time to convert to string for readability
     dt_object = datetime.datetime.fromtimestamp(currentTimestamp) 
     readable_time_string = dt_object.strftime("%Y-%m-%d %H:%M:%S") 
+
+    myListofUrls = []
     
     if urlResponse.status_code == 200: # 200 mean OK
         
@@ -64,11 +66,13 @@ for i in myURLs:
         print(readable_time_string)
         print('Your site is online!')
 
+        myListofUrls.append(i)
+
         cursor.execute(sqlInsertQuery,(i,urlResponse.status_code,readable_time_string)) 
         print('')
         
     else:
-
+        downedURL = i #sets variable for the downed url for notification purposes
         print(i)
         print(readable_time_string)
         print('The site is down. Go touch grass')
@@ -82,6 +86,21 @@ print("Your database has successfully logged theses entries! :)")
 print(f"Next check in {CHECK_FREQUENCY} minutes.")
 
 send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
+
+for i in myURLs:
+    try:
+        urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
+    except requests.exceptions.ConnectionError as e:
+        urlResponse = type('obj', (object,), {'status_code' : 'N/A'})()  # Create a dummy object with status_code 'N/A'
+
+    if urlResponse.status_code != 200:
+        downedURL = i
+        send_discord_notification(discord_webhook_url, f"The url: {downedURL} appears to be down! ❌🚨")
+    else:
+        send_discord_notification(discord_webhook_url, f"The url: {i} appears to be up! ✅")
+        continue
+
+
 connection.close()
     
   
