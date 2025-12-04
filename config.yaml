@@ -8,6 +8,7 @@ urls_to_monitor:
   - https://status.cloud.microsoft # <-- Added https://
   - https://www.githubstatus.com   # <-- Added https://
   - http://localhost:9999    # <-- Added https://
+  - https://httpstat.us/503      # <-- Added https://
 
 # Network settings for the requests
 settings:

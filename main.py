@@ -19,6 +19,7 @@ connection = sqlite3.connect('./Database/MyUrlChecksDBStorage.db') #path to sql 
 cursor = connection.cursor() #helper that inserts the data
 
 sqlInsertQuery = "INSERT INTO Url_Responses (url, status_code, timestamp) VALUES (?, ?, ?);"
+sqlSelectQuery = "SELECT * FROM Url_Responses where status_code = 200;"
 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS Url_Responses (
@@ -60,6 +61,7 @@ for i in myURLs:
 
     myListofUrls = []
     
+    
     if urlResponse.status_code == 200: # 200 mean OK
         
         print(i)
@@ -85,20 +87,43 @@ connection.commit() #pushes to database
 print("Your database has successfully logged theses entries! :)")
 
 
-send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
 
-for i in myURLs:
+
+# --- Status Change Detection and Notification ---
+
+previous_status = {}  # This stores {url: last_status_code}
+
+for url in myURLs:
+    # 1. Check current status
     try:
-        urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
-    except requests.exceptions.ConnectionError as e:
-        urlResponse = type('obj', (object,), {'status_code' : 'N/A'})()  # Create a dummy object with status_code 'N/A'
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
+        current = response.status_code
+    except requests.exceptions.ConnectionError:
+        current = 'DOWN'  # Or 0, or 'CONNECTION_ERROR'
+    
+    # 2. Get previous status for THIS URL
+    previous = previous_status.get(url)  # Returns None if first time
+    
+    # 3. Compare and decide
+    if previous is None:
+        # First time seeing this URL - just store, no alert
+        previous_status[url] = current
+    
+    elif current != previous:
+    # STATUS CHANGED! Send ONE clear alert
+        status_text = "UP" if current == 200 else "DOWN"
+        previous_text = "UP" if previous == 200 else "DOWN"
+    
+        send_discord_notification(discord_webhook_url, f"🚨 {url} changed from {previous} to {current}")
+    
+    previous_status[url] = current  # Update stored status
+    # Log to database as usual
+    
+    cursor.execute(sqlInsertQuery, (url, current, readable_time_string))
 
-    if urlResponse.status_code != 200:
-        downedURL = i
-        send_discord_notification(discord_webhook_url, f"The url: {downedURL} appears to be down! ❌🚨")
-    else:
-        send_discord_notification(discord_webhook_url, f"The url: {i} appears to be up! ✅")
-        continue
+send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
+   
+    
 
 
 connection.close()
