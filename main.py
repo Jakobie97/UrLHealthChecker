@@ -121,11 +121,13 @@ for url in myURLs:
     
     cursor.execute(sqlInsertQuery, (url, current, readable_time_string))
 
-send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
+
    
     
 
 
 connection.close()
+
+send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
     
   
