@@ -45,6 +45,12 @@ def send_discord_notification(webhook_url, message):
 
 discord_webhook_url = config['discord_webhook']['url']
 
+# --- URL Checking and Database Logging ---
+#variables for counting up and downed urls
+myListofUrls = []
+isUpCounter = 0
+isDownCounter = 0
+
 for i in myURLs:
     try:
         urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
@@ -60,10 +66,11 @@ for i in myURLs:
     readable_time_string = dt_object.strftime("%Y-%m-%d %H:%M:%S") 
 
     myListofUrls = []
-    
+   
     
     if urlResponse.status_code == 200: # 200 mean OK
         
+        isUpCounter += 1
         print(i)
         print(readable_time_string)
         print('Your site is online!')
@@ -74,6 +81,7 @@ for i in myURLs:
         print('')
         
     else:
+        isDownCounter += 1
         downedURL = i #sets variable for the downed url for notification purposes
         print(i)
         print(readable_time_string)
@@ -85,6 +93,8 @@ for i in myURLs:
 connection.commit() #pushes to database
 
 print("Your database has successfully logged theses entries! :)")
+print("Total URLs Up: ", isUpCounter)
+print("Total URLs Down: ", isDownCounter)
 
 
 
@@ -129,5 +139,6 @@ for url in myURLs:
 connection.close()
 
 send_discord_notification(discord_webhook_url, f"The URL Health Check completed. Check the database for results 🧾✅")
+send_discord_notification(discord_webhook_url, f"Total URLs Up: {isUpCounter} \nTotal URLs Down: {isDownCounter}")# --- End Status Change Detection and Notification ---
     
   
