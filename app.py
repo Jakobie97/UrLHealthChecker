@@ -8,7 +8,8 @@ app = Flask(__name__)
 # Use the route() decorator to bind a URL path (e.g., '/') to a function
 @app.route('/')
 def hello_world():
-    return render_template('display_data.html', users=myListofUrls)
+   return render_template('display_data.html', myListofUrls=myListofUrls)
+    
 
 # Run the application if the script is executed directly
 if __name__ == '__main__':

@@ -8,22 +8,26 @@
   }
 </style>
 
-<table>
-  <caption>Latest URL Health Check Results</caption>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>URL</th>
-      <th>Status Code</th>
-      <th>Timestamp</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
+<body>
+  <h1>URL Health Check Results</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>URL</th>
+        <th>Response Time (ms)</th>
+        <th>Status Code</th>
+        <th>Health Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows will be dynamically inserted here -->
+      {% for url, status_code, timestamp in myListofUrls %}
+      <tr>
+        <td>{{ url }}</td>
+        <td>{{ timestamp }}</td>
+        <td>{{ status_code }}</td>
+        <td>{{ "UP" if status_code == 200 else "DOWN" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</body>

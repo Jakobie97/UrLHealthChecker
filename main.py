@@ -108,6 +108,8 @@ for i in myURLs:
 
         cursor.execute(sqlInsertQuery,(i,urlResponse.status_code,readable_time_string)) 
         print('')
+
+        myListofUrls.append([i, urlResponse.status_code, readable_time_string])
         
     else:
         
