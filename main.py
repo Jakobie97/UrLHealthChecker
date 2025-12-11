@@ -1,7 +1,7 @@
-import requests, time, datetime, sqlite3, yaml
+import requests, time, datetime, sqlite3, yaml, flask, json, traceback
 
 
-# --- Configuration Reading ---
+# --- Configuration Reading -----------------------------------------------------------------------------------------
 try:
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
@@ -13,7 +13,9 @@ except FileNotFoundError:
 myURLs = config['urls_to_monitor']
 REQUEST_TIMEOUT = config['settings']['request_timeout_seconds']
 CHECK_FREQUENCY = config['settings']['check_frequency_minutes']
-# --- End Configuration Reading ---
+# --- End Configuration Reading -----------------------------------------------------------------------------------
+
+# --- Database Setup ----------------------------------------------------------------------------------------------
 
 connection = sqlite3.connect('./Database/MyUrlChecksDBStorage.db') #path to sql db file
 cursor = connection.cursor() #helper that inserts the data
@@ -29,7 +31,7 @@ cursor.execute('''
         timestamp TEXT
         )
     ''')
-  
+# --- Discord Notification Function ----------------------------------------------------------------------------- 
 def send_discord_notification(webhook_url, message):
     data = {
         "content": message
@@ -45,8 +47,8 @@ def send_discord_notification(webhook_url, message):
 
 discord_webhook_url = config['discord_webhook']['url']
 
-# --- URL Checking and Database Logging ---
-#variables for counting up and downed urls
+# --- URL Checking and Database Logging --------------------------------------------------------------------------------
+#variables for counting up and downed urls------------------------------------------------------------------------------
 myListofUrls = []
 isUpCounter = 0
 isDownCounter = 0
@@ -54,9 +56,43 @@ isDownCounter = 0
 for i in myURLs:
     try:
         urlResponse = requests.get(i, timeout=REQUEST_TIMEOUT)
+        current_status_code = urlResponse.status_code
+
+        # Check if the site is UP (200-level status)
+        if urlResponse.status_code == requests.codes.ok: # requests.codes.ok is 200
+            isUpCounter += 1
+
+            # Try to decode JSON (this might still fail even if status is 200)
+            try:
+                jsonResponse = urlResponse.json()
+                print("Successfully parsed JSON response.")
+                # print(jsonResponse) # Uncomment to see the actual JSON data
+            except requests.exceptions.JSONDecodeError:
+                print(f"Warning: {i} returned status 200, but content was not JSON.")
+        
+        else:
+            # Handle non-200 OK statuses (e.g., 404, 500, etc.)
+            print(f"{i} returned an error status code: {current_status_code} ({urlResponse.reason})")
+            isDownCounter += 1
+
     except requests.exceptions.ConnectionError as e:
-        print(f"Error accessing {i}: {e}")
-        urlResponse = type('obj', (object,), {'status_code' : 'N/A'})()  # Create a dummy object with status_code 'N/A'
+        # This catches "connection refused", DNS errors, etc.
+        print(f"NETWORK ERROR accessing {i}: {e}")
+        current_status_code = 'Connection Failed'
+        isDownCounter += 1
+        
+    except requests.exceptions.Timeout as e:
+        # Catches if the server takes too long to respond
+        print(f"TIMEOUT ERROR accessing {i}: {e}")
+        current_status_code = 'Timeout'
+        isDownCounter += 1
+
+    except requests.exceptions.RequestException as e:
+        # Catches any other ambiguity from the requests library
+        print(f"AN UNEXPECTED REQUEST ERROR occurred for {i}: {e}")
+        current_status_code = 'Error'
+        isDownCounter += 1
+    #--------------------------------------------------------------------------------------------
 
     #this block takes the raw time data in second and make it more readaable 
     currentTimestamp = time.time()
@@ -64,28 +100,26 @@ for i in myURLs:
     #you have to create an object date time to convert to string for readability
     dt_object = datetime.datetime.fromtimestamp(currentTimestamp) 
     readable_time_string = dt_object.strftime("%Y-%m-%d %H:%M:%S") 
-
-    myListofUrls = []
    
-    
     if urlResponse.status_code == 200: # 200 mean OK
-        
-        isUpCounter += 1
         print(i)
         print(readable_time_string)
         print('Your site is online!')
-
-        myListofUrls.append(i)
 
         cursor.execute(sqlInsertQuery,(i,urlResponse.status_code,readable_time_string)) 
         print('')
         
     else:
-        isDownCounter += 1
+        
         downedURL = i #sets variable for the downed url for notification purposes
         print(i)
         print(readable_time_string)
         print('The site is down. Go touch grass')
+
+
+        print("#########################################")
+        print(jsonResponse)  # Print the JSON response for debugging
+
 
         cursor.execute(sqlInsertQuery,(i,urlResponse.status_code,readable_time_string))
         print('')
